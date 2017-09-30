@@ -32,6 +32,9 @@ kTROPE = 'trope'
 
 
 '''
+Implemented different features extraction methods for the text classification problem.
+
+
 Different transformers used to extract features
     1. CountVectorizer(): bag of words
     2. TfidfVectorizer(): tfidf
