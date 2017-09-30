@@ -340,7 +340,8 @@ class Cross_validation():
 
 
 if __name__ == "__main__":
-
+    # Generate the test data
+    
     # # Cast to list to keep it all in memory
     # train = list(DictReader(open("../data/spoilers/train.csv", 'r')))
     # test = list(DictReader(open("../data/spoilers/test.csv", 'r')))
@@ -390,7 +391,7 @@ if __name__ == "__main__":
     #     o.writerow(d)
 
 
-
+    # Cross validation
     data = list(DictReader(open("../data/spoilers/train.csv", 'r')))
     true = 0
     false = 0
@@ -405,31 +406,6 @@ if __name__ == "__main__":
     crosstest = Cross_validation(6)
     accuracy = crosstest.cross_train()
     print (accuracy)
-
-
-    # train = list(DictReader(open("../data/spoilers/train.csv", 'r')))
-    # test = list(DictReader(open("../data/spoilers/test.csv", 'r')))
-    #
-    # sum = train + test
-    #
-    # process = NLTKPreprocessor()
-    # tokens_train = NLTKPreprocessor().fit_transform((x[kTEXT_FIELD]) for x in train)
-    # tokens_test = NLTKPreprocessor().fit_transform((x[kTEXT_FIELD]) for x in test)
-    # tokens = process.fit_transform((x[kTEXT_FIELD]) for x in sum)
-    #
-    # print ("process finish")
-    #
-    # model = gensim.models.Word2Vec(tokens, size=100, window=5, min_count=5, workers=2)
-    # w2v = {w: vec for w, vec in zip(model.wv.index2word, model.wv.syn0)}
-    # print ("w2v",type(w2v))
-    # print (len(list(w2v.values())[0]))
-    #
-    # embedding = MeanEmbeddingVectorizer(w2v)
-    # docum = embedding.fit_transform(x for x in tokens_train)
-    # print (docum.shape)
-    #
-    #
-    # print ("finish train")
 
 
 
