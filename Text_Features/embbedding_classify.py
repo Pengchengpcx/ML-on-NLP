@@ -29,21 +29,16 @@ from sklearn.base import BaseEstimator, TransformerMixin
 kTARGET_FIELD = 'spoiler'
 kTEXT_FIELD = 'sentence'
 kTROPE = 'trope'
-GLOVE_6B_50D_PATH = "glove.6B.50d.txt"
 
 
-a=[]
-for line in open("stopwords.csv", 'r'):
-    a.append(line[:-1])
 '''
 Different transformers used to extract features
-    1. CountVectorizer(): words count
+    1. CountVectorizer(): bag of words
     2. TfidfVectorizer(): tfidf
-    3. Textlength(): text length, average word length, ...
-    4. imbdtest(): features from IMBD movie dataset
-    5.
-To do:
-delete bad features
+    3. NLTKPreprocessor(): preprocess document
+    4. IMBD(): features from IMBD movie dataset
+    5. Keyword(): movies key words in a sentence
+    6. Trope(): trope of a sentence
 '''
 
 def identity(arg):
@@ -121,29 +116,6 @@ class MeanEmbeddingVectorizer(BaseEstimator, TransformerMixin):
             for words in X
         ])
 
-class TfidfEmbeddingVectorizer(BaseEstimator, TransformerMixin):
-    def __init__(self, word2vec):
-        self.word2vec = word2vec
-        self.word2weight = None
-        self.dim = len(list(word2vec.values())[0])
-        self.tfidf = TfidfVectorizer(tokenizer=identity, preprocessor=None,analyzer=lambda x:x)
-
-    def fit(self, X, y=None):
-        tfidf = self.tfidf.fit_transform(X)
-        self.word2weight = defaultdict(lambda:
-                                       [(w, tfidf.idf_[i]) for w, i in self.tfidf.vocabulary_.items()])
-        return self
-
-    def transform(self, X):
-        print ("dimen",self.dim)
-
-        return np.array([
-                np.mean([self.word2vec[w] * self.word2weight[w]
-                for w in words if w in self.word2vec] or
-                [np.zeros(self.dim)], axis=0)
-                for words in X
-            ])
-
 
 class IMBD:
     '''
@@ -204,7 +176,6 @@ class Featurizer:
     def __init__(self):
         self.df = CountVectorizer( ngram_range=(1,5), stop_words='english')
         self.tfidf = TfidfTransformer()
-        # self.vectorizer = TfidfVectorizer(max_df=0.999, max_features=20000,analyzer="word",stop_words=a, lowercase=False)
 
     def train_feature(self, examples):
         tfidf_train = self.df.fit_transform(examples)
@@ -267,16 +238,6 @@ class Cross_validation():
         model = gensim.models.Word2Vec(tokens1+tokens2, size=100, window=5, min_count=5, workers=2)
         w2v = {w: vec for w, vec in zip(model.wv.index2word, model.wv.syn0)}
 
-        glove_small = {}
-        all_words = set(w for words in (tokens1+tokens2) for w in words)
-        with open(GLOVE_6B_50D_PATH, "rb") as infile:
-            for line in infile:
-                parts = line.split()
-                word = parts[0]
-                nums = map(float, parts[1:])
-                if word in all_words:
-                    glove_small[word] = np.array(nums)
-
         for i in range(self.k):
             train = self.train[0:i*self.set_number] + self.train[(i+1)*self.set_number:]
             test = self.train[i*self.set_number:(i+1)*self.set_number]
@@ -296,7 +257,7 @@ class Cross_validation():
             keyword_train = keyword.train_feature((x[kTEXT_FIELD]+x[kTROPE]) for x in train)
             print ("imbd feature shape",imbd_train.shape,"orignal data",x_train.shape)
 
-            embedding_train = MeanEmbeddingVectorizer(glove_small).fit_transform(x for x in tokens_train)
+            embedding_train = MeanEmbeddingVectorizer(w2v).fit_transform(x for x in tokens_train)
             print ('embedding size',embedding_train.shape)
 
             x_train = hstack([x_train,
